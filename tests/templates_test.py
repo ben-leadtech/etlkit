@@ -1,9 +1,7 @@
 import pytest
-#import inspect
 from typing import Callable
-from src.etlkit.templates import generic_check_handler, generic_checker
-#from src.etlkit.templates import TemplatePipeline
-from src.etlkit.templates import ExtractTemplate, TransformTemplate, LoadTemplate
+from src.templates import generic_check_handler, generic_checker
+from src.templates import ExtractTemplate, TransformTemplate, LoadTemplate
 
 
 #=====================================================================#

@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from pandas import DataFrame
 from dotenv import load_dotenv
 from typing import Callable, Protocol
-from src.etlkit import logging
-from src.etlkit.containers import Config, Data
+from src import logging
+from src.containers import Config, Data
 
 #_____ GLOBALS _____#
 load_dotenv()
@@ -16,74 +16,6 @@ load_dotenv()
 LOCATION     = os.getenv('LOCATION')
 PROJECT_ID   = os.getenv('GOOGLE_CLOUD_PROJECT_ID')
 ENVIRONMENT  = os.getenv('ENVIRONMENT')
-
-
-
-#================================================================================#
-#____ Generic ETL class, which ensures a run method is defined __________________#
-# class BaseETL(ABC):
-
-# 	"""
-# 	Base class for the ETL pipeline.
-# 	"""
-
-# 	# Always have space for a config object, and allow it to be passed in
-# 	config: Config = None
-# 	def __init__(self, config: Config = None) -> None:
-# 		if config is not None:
-# 			self.config = config
-
-
-# 	# Define the run method. This is defined in the child class.
-# 	@abstractmethod
-# 	def run(self, *args, **kwargs) -> Any:
-# 		"""
-# 		Run the ETL pipeline.
-# 		"""
-# 		pass
-
-# 	# Define the call method, which calls the run method.
-# 	def __call__(self, *args, **kwargs) -> Any:
-# 		"""
-# 		Call the run method.
-# 		"""
-# 		return self.run(*args, **kwargs)
-#================================================================================#
-
-
-
-
-#================================================================================#
-#____ Generic ETL class, which ensures a run method is defined __________________#
-# class BaseETLProtocol(Protocol):
-
-# 	"""
-# 	Base class for the ETL pipeline.
-# 	"""
-
-# 	# Always have space for a config object, and allow it to be passed in
-# 	config: Config = None
-# 	def __init__(self, config: Config = None) -> None:
-# 		if config is not None:
-# 			self.config = config
-
-
-# 	# Define the run method. This is defined in the child class.
-# 	def run(self, *args, **kwargs) -> Any:
-# 		"""
-# 		Run the ETL pipeline.
-# 		"""
-# 		pass
-
-
-# 	# Define the call method, which calls the run method.
-# 	def __call__(self, *args, **kwargs) -> Any:
-# 		"""
-# 		Call the run method.
-# 		"""
-# 		return self.run(*args, **kwargs)
-#================================================================================#
-
 
 
 
@@ -114,65 +46,6 @@ class BaseExtract(ABC):
 		return self.query_runner(self.query)
 #================================================================================#
 
-
-
-
-#================================================================================#
-#_____ Base class for the transform function ____________________________________#
-# class BaseTransform(ABC):
-
-# 	"""
-# 	Base class for the transform function.
-
-# 	Absract methods:
-# 	- run: the function to transform the data. This is defined in the child class,
-# 					but must take the input data as an argument.
-# 					The type of the input data can be anything, but it must be the same
-# 					type as the output of the extract function.
-# 					The output of the transform function must be a dataframe.
-
-# 	Notes:
-# 	- This class also contains a __call__ method, which runs some checks to ensure
-# 		the output conforms to expectations, before calling the 'run' function.
-# 	"""
-
-# 	@abstractmethod
-# 	def run(self, input: Data) -> DataFrame:
-# 		"""
-# 		Generic runner that returns a dataframe of the transformed data.
-# 		"""
-# 		pass
-
-# 	#______________________________________________________________________________#
-# 	def __call__(self, input: any) -> DataFrame:
-# 		"""
-# 		Transform the data, run some checks to ensure it conforms to expectations,
-# 		and return the transformed data.
-# 		"""
-
-# 		# TODO: add a check that the input is the same type as the output
-# 		# of the extract function.
-
-
-
-# 		# Run the transform function
-# 		output = self.run(input)
-
-# 		# Check the output is a dataframe
-# 		if not isinstance(output, DataFrame):
-# 			raise TypeError(f"Expected a dataframe, got {type(output)}")
-
-# 		# Check that the output has a column called "Unique_ID"
-# 		if 'Unique_ID' not in output.columns:
-# 			raise KeyError("Expected a column called 'Unique_ID' in the output dataframe.")
-
-# 		# Check that the values in the Unique_ID column are unique
-# 		if not output['Unique_ID'].is_unique:
-# 			raise ValueError("The values in the Unique_ID column are not unique.")
-
-# 		logging.info("Transformed the data, all checks passed.")
-# 		return output
-#================================================================================#
 
 
 

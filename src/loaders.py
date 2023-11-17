@@ -9,6 +9,8 @@ from src.ingestors.salesforce_exporter import delete_table, create_table
 from src.ingestors.salesforce_exporter import schema_from_dataframe
 from src.ingestors.support.db import client as client_bq
 
+# TODO: replace/import the sfexporter functions
+
 
 #================================================================================#
 class BigQueryLoader(BaseLoad):
@@ -125,8 +127,8 @@ class GCPBucketLoader(BaseLoad):
 
 
 	def __init__(self, bucket_name: str = '', project_id: str | None = ''):
-		from google.cloud import storage
-		self.client = storage.Client(project=project_id)
+		import google.cloud.storage as gcp_storage
+		self.client = gcp_storage.Client(project=project_id)
 		self.bucket = self.client.bucket(bucket_name)
 
 	#______________________________________________________________________________#

@@ -196,15 +196,18 @@ class MultiExtractor:
 	>>> data = extractor.run()
 	"""
 	extractor_jobs: List[ExtractorJob]
+	run: Callable[[], Data]
 
 	#______________________________________________________________________________#
 	def __init__(self, async_extract: bool = False):
 		self.extractor_jobs: List[ExtractorJob] = []
 		if async_extract:
 			self.run = self._run_async
+		else:
+			self.run = self._run
 
 	#______________________________________________________________________________#
-	def create_job(self, extractor: BaseExtract, name: str, query: str) -> None | Exception:
+	def create_job(self, extractor: BaseExtract, name: str, query: str) -> None:
 		"""
 		Create an ExtractorJob object and add it to the list of jobs to complete.
 		### Parameters:
@@ -238,7 +241,7 @@ class MultiExtractor:
 
 
 	#______________________________________________________________________________#
-	def run(self) -> Data:
+	def _run(self) -> Data:
 		"""
 		Run the extractor jobs.
 		### Returns:

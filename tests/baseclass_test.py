@@ -3,8 +3,8 @@ import os
 import pandas as pd
 import inspect
 from typing import Callable
-from src.etlkit._baseclasses import Config, Data
-from src.etlkit._baseclasses import BaseExtract, BaseLoad
+from src._baseclasses import Config, Data
+from src._baseclasses import BaseExtract, BaseLoad
 
 dotenv.load_dotenv()
 #================================================================================#
@@ -59,7 +59,9 @@ class DummyExtractor(BaseExtract):
 
 #______________________________________________________________________________#
 class DummyLoader(BaseLoad):
-	def load(self, data: pd.DataFrame):
+	def load(self, data: pd.DataFrame,
+					table_name: str = 'table',
+					dataset_name: str = 'dataset'):
 		pass
 
 

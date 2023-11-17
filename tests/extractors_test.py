@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import Mock
 import pandas as pd
-from src.etlkit.extractors import SalesforceExtractor, BigQueryExtractor
-from src.etlkit.extractors import ExtractorJob, MultiExtractor
-from src.etlkit.containers import Data
+from src.extractors import SalesforceExtractor, BigQueryExtractor
+from src.extractors import ExtractorJob, MultiExtractor
+from src.containers import Data
 
 #================================================================================#
 def test_ExtractorJob():

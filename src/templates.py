@@ -3,8 +3,8 @@ import dotenv
 import os
 from typing import Any, List, Protocol, Type, Optional
 from pandas import DataFrame
-from src.etlkit import logging
-from src.etlkit.containers import Data, Config
+from src import logging
+from src.containers import Data, Config
 
 #_____ GLOBALS _____#
 dotenv.load_dotenv()
