@@ -11,8 +11,9 @@ from dataclasses import dataclass
 @dataclass
 class GoogleCreds:
 	"""Dataclass for Google credentials"""
+	from google.oauth2.service_account import Credentials
 	project_id: str
-	creds_file: str
+	creds: Credentials
 
 @dataclass
 class SalesforceCreds:
@@ -43,13 +44,22 @@ def read_json(jsonfile: str) -> dict:
 #================================================================================#
 def get_bq_creds(jsonfile: str = 'credentials.json') -> GoogleCreds:
 	"""Get BigQuery client"""
+	from google.oauth2.service_account import Credentials
 	creds_json = read_json(jsonfile)
 	if 'google_creds' not in creds_json:
 		sys.exit(f"Credentials file {jsonfile} does not contain google_creds.")
 
+	# Read the credentials file
+	creds_info = read_json(creds_json['google_creds']['creds_file'])
+
+	# Create the creds object
+	try:
+		creds = Credentials.from_service_account_info(creds_info)
+	except Exception as e:
+		sys.exit(f"Error creating credentials object: {e}")
+
 	project_id = creds_json['google_creds']['project_id']
-	creds_file = creds_json['google_creds']['creds_file']
-	return GoogleCreds(project_id, creds_file)
+	return GoogleCreds(project_id, creds)
 #================================================================================#
 
 

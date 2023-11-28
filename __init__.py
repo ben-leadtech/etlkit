@@ -10,4 +10,8 @@ Currently supported loaders:
 - BigQuery
 - Google Cloud Storage
 - Google Sheets
+
+Requires:
+- credentials file (JSON)
+
 """

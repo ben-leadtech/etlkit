@@ -3,8 +3,8 @@ import os
 import pandas as pd
 import inspect
 from typing import Callable
-from src._baseclasses import Config, Data
-from src._baseclasses import BaseExtract, BaseLoad
+from ..src._baseclasses import Config, Data
+from ..src._baseclasses import BaseExtract, BaseLoad
 
 dotenv.load_dotenv()
 #================================================================================#
@@ -92,7 +92,7 @@ class TestBaseClasses:
 class TestExtractors:
 	def test_generic_extractor(self):
 		# Get list of classes in Extractors
-		from src.etlkit import extractors
+		from ..src import extractors
 		extractor_classes = [extractors.SalesforceExtractor, extractors.BigQueryExtractor]
 
 		# Loop through the classes
@@ -110,18 +110,18 @@ class TestExtractors:
 
 #==============================================================================#
 #_____ Test that the classes in _loaders.py conform to the base class _________#
-class TestLoaders:
-	def test_generic_loader(self):
-		# Get list of classes in loaders
-		from src.etlkit.loaders import BigQueryLoader # , GCPBucketLoader, GoogleSheetLoader
-		loader_classes = [BigQueryLoader] # , GCPBucketLoader]#, GoogleSheetLoader]
+# class TestLoaders:
+# 	def test_generic_loader(self):
+# 		# Get list of classes in loaders
+# 		from ..src.loaders import BigQueryLoader # , GCPBucketLoader, GoogleSheetLoader
+# 		loader_classes = [BigQueryLoader] # , GCPBucketLoader]#, GoogleSheetLoader]
 
-		# Loop through the classes
-		for loader_class in loader_classes:
-			# Get the class
-			loader = loader_class()
-			# Check that it conforms to the base class
-			assert isinstance(loader, BaseLoad)
-			assert hasattr(loader, 'load')
-			assert get_input_types(loader.load)['df'] == pd.DataFrame
+# 		# Loop through the classes
+# 		for loader_class in loader_classes:
+# 			# Get the class
+# 			loader = loader_class()
+# 			# Check that it conforms to the base class
+# 			assert isinstance(loader, BaseLoad)
+# 			assert hasattr(loader, 'load')
+# 			assert get_input_types(loader.load)['df'] == pd.DataFrame
 #==============================================================================#

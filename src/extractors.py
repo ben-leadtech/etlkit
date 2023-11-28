@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from ._baseclasses import BaseExtract
 from .containers import Data
 from . import logging
-from credentials import get_bq_creds, get_salesforce_creds
+from .credentials import get_bq_creds, get_salesforce_creds
 
 load_dotenv()
 
@@ -138,9 +138,8 @@ class BigQueryExtractor(BaseExtract):
 	#______________________________________________________________________________#
 	def __init__(self, creds_json: str = 'credentials.json'):
 		creds = get_bq_creds(creds_json)
-
 		self.client = self.BigQueryClient(project=creds.project_id,
-																		credentials=creds.creds_file)
+																		credentials=creds.creds)
 		self.query_runner = self._query
 
 	#______________________________________________________________________________#
@@ -149,9 +148,12 @@ class BigQueryExtractor(BaseExtract):
 		Query BigQuery.
 		"""
 		from sys import exit
+
+		buffer = query.split(self.client.project+'.')
+		if len(buffer) > 1:
+			logging.info(f"Querying BigQuery table {buffer[1]}")
+
 		try:
-			table = query.split('FROM ')[1].split('\n')[0]
-			logging.info(f"Querying BigQuery table {table}")
 			df = self.client.query(query).to_dataframe()
 		except Exception as e:
 			logging.error(e.__class__.__name__)

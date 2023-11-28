@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import Mock
 import pandas as pd
-from src.extractors import SalesforceExtractor, BigQueryExtractor
-from src.extractors import ExtractorJob, MultiExtractor
-from src.containers import Data
+from ..src.extractors import SalesforceExtractor, BigQueryExtractor
+from ..src.extractors import ExtractorJob, MultiExtractor
+from ..src.containers import Data
 
 #================================================================================#
 def test_ExtractorJob():
@@ -40,14 +40,13 @@ def test_salesforce_extractors():
 
 #================================================================================#
 def test_BigQueryExtractor():
-	from google.cloud.exceptions import BadRequest
 	bq = BigQueryExtractor()
 	assert hasattr(bq,'client')
 	assert hasattr(bq,'query_runner')
 	assert bq.client.__class__.__name__ == 'Client'
 	assert bq.query_runner.__name__ == '_query'
 
-	with pytest.raises(BadRequest):
+	with pytest.raises(SystemExit):
 		bq.query_runner('bad query')
 #================================================================================#
 
