@@ -4,14 +4,13 @@ Extractor classes for the ELT pipeline.
 import os
 from sys import exit
 import time
-#import pandas as pd
 from pandas import DataFrame
 from typing import Callable, List
 from dataclasses import dataclass
 from dotenv import load_dotenv
 from ._baseclasses import BaseExtract
 from .containers import Data
-from src.etlkit import logging
+from . import logging
 
 load_dotenv()
 
@@ -132,12 +131,12 @@ class BigQueryExtractor(BaseExtract):
 	"""
 	Class containing the extractor methods for BigQuery queries.
 	"""
-	from google.cloud import bigquery
+	from google.cloud.bigquery import Client as BigQueryClient
 	project_id = os.getenv('GOOGLE_CLOUD_PROJECT_ID')
 
 	#______________________________________________________________________________#
 	def __init__(self):
-		self.client = self.bigquery.Client(self.project_id)
+		self.client = self.BigQueryClient(self.project_id)
 		self.query_runner = self._query
 
 	#______________________________________________________________________________#
@@ -145,7 +144,7 @@ class BigQueryExtractor(BaseExtract):
 		"""
 		Query BigQuery.
 		"""
-		import sys
+		from sys import exit
 		try:
 			table = query.split('FROM ')[1].split('\n')[0]
 			logging.info(f"Querying BigQuery table {table}")
@@ -153,7 +152,7 @@ class BigQueryExtractor(BaseExtract):
 		except Exception as e:
 			logging.error(e.__class__.__name__)
 			print('\n\nQuery:\n', query)
-			sys.exit()
+			exit("Error querying BigQuery.")
 		return df
 #================================================================================#
 

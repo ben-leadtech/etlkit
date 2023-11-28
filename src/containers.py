@@ -2,7 +2,7 @@ import os
 import dotenv
 from dataclasses import dataclass
 from pandas import DataFrame, Timestamp, Timedelta
-from src.etlkit import logging
+from . import logging
 
 #_____ GLOBALS _____#
 dotenv.load_dotenv()
