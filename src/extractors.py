@@ -1,7 +1,6 @@
 """
 Extractor classes for the ELT pipeline.
 """
-import os
 from sys import exit
 import time
 from pandas import DataFrame
@@ -11,6 +10,7 @@ from dotenv import load_dotenv
 from ._baseclasses import BaseExtract
 from .containers import Data
 from . import logging
+from credentials import get_bq_creds, get_salesforce_creds
 
 load_dotenv()
 
@@ -49,10 +49,12 @@ class SalesforceExtractor(BaseExtract):
 	query_runner: Callable[[str], DataFrame]
 
 	#______________________________________________________________________________#
-	def __init__(self, bulk: bool = False):
-		sf_username = os.getenv('SALESFORCE_USERNAME')
-		sf_password = os.getenv('SALESFORCE_PASSWORD')
-		sf_sectoken = os.getenv('SALESFORCE_SECTOKEN')
+	def __init__(self, bulk: bool = False, creds_json: str = 'credentials.json'):
+		creds = get_salesforce_creds(creds_json)
+		sf_username = creds.username
+		sf_password = creds.password
+		sf_sectoken = creds.security_token
+
 
 		if bulk:
 			from salesforce_bulk import SalesforceBulk
@@ -132,11 +134,13 @@ class BigQueryExtractor(BaseExtract):
 	Class containing the extractor methods for BigQuery queries.
 	"""
 	from google.cloud.bigquery import Client as BigQueryClient
-	project_id = os.getenv('GOOGLE_CLOUD_PROJECT_ID')
 
 	#______________________________________________________________________________#
-	def __init__(self):
-		self.client = self.BigQueryClient(self.project_id)
+	def __init__(self, creds_json: str = 'credentials.json'):
+		creds = get_bq_creds(creds_json)
+
+		self.client = self.BigQueryClient(project=creds.project_id,
+																		credentials=creds.creds_file)
 		self.query_runner = self._query
 
 	#______________________________________________________________________________#
