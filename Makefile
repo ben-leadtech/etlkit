@@ -1,16 +1,16 @@
 
 # variables, targets, dependencies, and recipes
 TESTER = pytest
-TESTER_ARGS = -ra --verbose --disable-warnings
+TESTER_ARGS = --verbose --disable-warnings
 LINTER = flake8
 LINTER_ARGS = --verbose
 
 
 lint:
-	pipenv run $(LINTER) $(LINTER_ARGS) src
+	$(LINTER) $(LINTER_ARGS) src tests
 
 typecheck:
-	pipenv run mypy src
+	mypy src tests
 
-tests:
-	pipenv run $(TESTER) $(TESTER_ARGS) src
+test:
+	$(TESTER) $(TESTER_ARGS) tests

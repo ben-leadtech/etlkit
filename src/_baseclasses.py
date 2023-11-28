@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from pandas import DataFrame
 from dotenv import load_dotenv
 from typing import Callable, Protocol
-from src import logging
-from src.containers import Config, Data
+from . import logging
+from .containers import Config, Data
 
 #_____ GLOBALS _____#
 load_dotenv()

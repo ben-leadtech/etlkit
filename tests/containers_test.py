@@ -1,4 +1,4 @@
-from src.containers import Data, Config
+from ..src.containers import Data, Config
 from pandas import Timedelta, Timestamp, DataFrame
 
 
