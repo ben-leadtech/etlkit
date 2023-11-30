@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 from ._baseclasses import BaseExtract
 from .containers import Data
 from . import logging
-from .credentials import get_bq_creds, get_salesforce_creds
 
 load_dotenv()
 
@@ -39,6 +38,8 @@ class ExtractorJob:
 			raise TypeError("ExtractorJob requires a query string, a name, and an extractor object.")
 #================================================================================#
 
+
+#================================================================================#
 class SalesforceExtractor(BaseExtract):
 
 	"""
@@ -49,24 +50,24 @@ class SalesforceExtractor(BaseExtract):
 	query_runner: Callable[[str], DataFrame]
 
 	#______________________________________________________________________________#
-	def __init__(self, bulk: bool = False, creds_json: str = 'credentials.json'):
+	def __init__(self, bulk: bool = False, creds_json: str = ''):
+		from .credentials import get_salesforce_creds
+
+		# Get the credentials
 		creds = get_salesforce_creds(creds_json)
-		sf_username = creds.username
-		sf_password = creds.password
-		sf_sectoken = creds.security_token
 
-
+		# Create the client
 		if bulk:
 			from salesforce_bulk import SalesforceBulk
-			self.client = SalesforceBulk(username=sf_username,
-																				password=sf_password,
-																				security_token=sf_sectoken)
+			self.client = SalesforceBulk(username=creds.username,
+																		password=creds.password,
+																		security_token=creds.security_token)
 			self.query_runner = self._bulk_query
 		else:
 			from simple_salesforce import Salesforce
-			self.client = Salesforce(username=sf_username,
-																		password=sf_password,
-																		security_token=sf_sectoken)
+			self.client = Salesforce(username=creds.username,
+																		password=creds.password,
+																		security_token=creds.security_token)
 			self.query_runner = self._simple_query
 
 
@@ -132,33 +133,41 @@ class BigQueryExtractor(BaseExtract):
 
 	"""
 	Class containing the extractor methods for BigQuery queries.
+
+	### Parameters:
+	- creds_json: the path to the Google Credentials JSON file for BigQuery.
 	"""
 	from google.cloud.bigquery import Client as BigQueryClient
 
 	#______________________________________________________________________________#
-	def __init__(self, creds_json: str = 'credentials.json'):
-		creds = get_bq_creds(creds_json)
-		self.client = self.BigQueryClient(project=creds.project_id,
-																		credentials=creds.creds)
+	def __init__(self, creds_json: str = ''):
+		from google.oauth2.service_account import Credentials
+		if creds_json == '':
+			logging.error("BigQueryExtractor: No Google credentials JSON file provided.")
+			logging.error("BigQueryExtractor: set `google_creds_json = `[path to JSON file]")
+			raise ValueError("No Google credentials JSON file provided.")
+
+		creds = Credentials.from_service_account_file(creds_json)
+		self.client = self.BigQueryClient(credentials=creds)
 		self.query_runner = self._query
 
 	#______________________________________________________________________________#
-	def _query(self, query: str = '') -> DataFrame | Exception:
+	def _query(self, query: str = '') -> DataFrame:
 		"""
 		Query BigQuery.
 		"""
-		from sys import exit
 
 		buffer = query.split(self.client.project+'.')
 		if len(buffer) > 1:
-			logging.info(f"Querying BigQuery table {buffer[1]}")
+			table = buffer[1].split(' ')[0]
+			logging.info(f"Querying BigQuery table {table}")
 
 		try:
 			df = self.client.query(query).to_dataframe()
 		except Exception as e:
-			logging.error(e.__class__.__name__)
+			logging.error("Error querying BQ:", e.__class__.__name__)
 			print('\n\nQuery:\n', query)
-			exit("Error querying BigQuery.")
+			raise e
 		return df
 #================================================================================#
 

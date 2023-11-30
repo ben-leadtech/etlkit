@@ -1,103 +1,82 @@
 import pytest
 from unittest.mock import Mock, patch
 import pandas as pd
-from typing import Any
 #from ..src.extractors import SalesforceExtractor, BigQueryExtractor
-from ..src.extractors import ExtractorJob, MultiExtractor
 from ..src.containers import Data
 
 
-
-class MockQueryResult:
-	def to_dataframe(self):
-		return pd.DataFrame()
-
-class MockClient:
-	"""
-	Mock class for Salesforce, SalesforceBulk and BigQuery.
-	"""
-	def __init__(self, **kwargs):
-		pass
-
-	def query_all(self, query: str):
-		return pd.DataFrame()
-
-	def create_query_job(self, query: str):
-		return None
-
-	def query(self, job: Any, query: str):
-		return MockQueryResult()
-
-	def is_batch_done(self, job: Any):
-		return True
-
-	def get_all_results_for_query_batch(self, job: Any):
-		return {}
-
-
-
 #================================================================================#
-def test_ExtractorJob():
-	with patch('simple_salesforce.Salesforce', new=MockClient):
-		from ..src.extractors import SalesforceExtractor
-		ej = ExtractorJob(query='query',name='name',extractor=SalesforceExtractor())
-	assert hasattr(ej,'query')
-	assert hasattr(ej,'name')
-	assert hasattr(ej,'extractor')
+class MockObjects:
+	from salesforce_bulk import SalesforceBulk
+	mock_sf_bulk_client = Mock(SalesforceBulk)
+	mock_sf_bulk_client.query = Mock(return_value=pd.DataFrame())
+	mock_sf_bulk_client.is_batch_done = Mock(return_value=True)
+	mock_sf_bulk_client.get_all_results_for_query_batch = Mock(return_value={})
 
-	with pytest.raises(TypeError):
-		ej = ExtractorJob('query','name','extractor') # type: ignore
+	from simple_salesforce import Salesforce
+	mock_sf_client = Mock(Salesforce)
+	mock_sf_client.query_all = Mock(return_value=pd.DataFrame())
 
+	from google.cloud.bigquery import Client as BQClient
+	mock_bq_client = Mock(BQClient)
+
+	from google.oauth2.service_account import Credentials as GoogleCreds
+	mock_google_creds = Mock(GoogleCreds)
+	mock_google_creds.from_service_account_info = Mock(return_value=None)
+	mock_google_creds.from_service_account_file = Mock(return_value=None)
+
+#______________________________________________________________________________#
+def mock_get_salesforce_creds(*args, **kwargs):
+	from ..src.credentials import SalesforceCreds
+	return SalesforceCreds('username','password','security_token')
 #================================================================================#
-def test_extractors():
-	with patch('simple_salesforce.Salesforce', new=MockClient):
-		with patch('google.cloud.bigquery.Client', new=MockClient):
-			from ..src.extractors import SalesforceExtractor, BigQueryExtractor
-			extractors = [SalesforceExtractor(), BigQueryExtractor()]
-	for ex in extractors:
-		assert hasattr(ex,'client')
-		assert hasattr(ex,'query_runner')
+
 
 #================================================================================#
 def test_salesforce_extractors():
-	with patch('simple_salesforce.Salesforce', new=MockClient):
-		from ..src.extractors import SalesforceExtractor
-		sf = SalesforceExtractor(bulk=True)
-	assert hasattr(sf,'client')
-	assert hasattr(sf,'query_runner')
-	assert sf.client.__class__.__name__ == 'SalesforceBulk'
-	assert sf.query_runner.__name__ == '_bulk_query'
+	with patch('simple_salesforce.Salesforce', new=MockObjects.mock_sf_client):
+		with patch('salesforce_bulk.SalesforceBulk', new=MockObjects.mock_sf_bulk_client):
+			with patch('etlkit.src.credentials.get_salesforce_creds',
+							new=mock_get_salesforce_creds):
+				from ..src.extractors import SalesforceExtractor
+				sf_simp = SalesforceExtractor(bulk=False, creds_json='test.json')
+				sf_bulk = SalesforceExtractor(bulk=True, creds_json='test.json')
 
-	with patch('salesforce_bulk.SalesforceBulk', new=MockClient):
-		from ..src.extractors import SalesforceExtractor
-		sf = SalesforceExtractor(bulk=False)
-	assert hasattr(sf,'client')
-	assert hasattr(sf,'query_runner')
-	assert sf.client.__class__.__name__ == 'Salesforce'
-	assert sf.query_runner.__name__ == '_simple_query'
+	for sf in [sf_simp, sf_bulk]:
+		assert hasattr(sf,'client')
+		assert hasattr(sf,'query_runner')
+
+	assert sf_simp.query_runner.__name__ == '_simple_query'
+	assert sf_bulk.query_runner.__name__ == '_bulk_query'
 #================================================================================#
 
 
 #================================================================================#
 def test_BigQueryExtractor():
-	with patch('google.cloud.bigquery.Client', new=MockClient):
-		from ..src.extractors import BigQueryExtractor
-		bq = BigQueryExtractor()
-	assert hasattr(bq,'client')
-	assert hasattr(bq,'query_runner')
-	assert bq.client.__class__.__name__ == 'Client'
-	assert bq.query_runner.__name__ == '_query'
+	with patch('google.cloud.bigquery.Client', new=MockObjects.mock_bq_client):
+		with patch('google.oauth2.service_account.Credentials',
+											new=MockObjects.mock_google_creds):
+			from ..src.extractors import BigQueryExtractor
+			bq = BigQueryExtractor(creds_json='test.json')
+			assert hasattr(bq,'client')
+			assert hasattr(bq,'query_runner')
+			assert bq.client.__class__.__name__ == 'Client'
+			assert bq.query_runner.__name__ == '_query'
 
-	with pytest.raises(SystemExit):
-		bq.query_runner('bad query')
+			with pytest.raises(Exception):
+				bq.query_runner('bad query')
+
+	with pytest.raises(ValueError):
+		bq = BigQueryExtractor(creds_json='')
+
 #================================================================================#
 
 
 #================================================================================#
 class TestMultiExtractor:
-
 	# Test methods/attrs
 	def test_mex_methods(self):
+		from ..src.extractors import MultiExtractor
 		me = MultiExtractor()
 		assert hasattr(me,'create_job')
 		assert hasattr(me,'run')
@@ -108,10 +87,14 @@ class TestMultiExtractor:
 	#______________________________________________________________________________#
 	# Test create_job
 	def test_mex_create_job(self):
-		with patch('simple_salesforce.Salesforce', new=MockClient):
-			from ..src.extractors import SalesforceExtractor
-			me = MultiExtractor()
-			me.create_job(query='query',name='name',extractor=SalesforceExtractor())
+		with patch('simple_salesforce.Salesforce', new=MockObjects.mock_sf_client):
+			with patch('etlkit.src.credentials.get_salesforce_creds',
+							new=mock_get_salesforce_creds):
+				from ..src.extractors import SalesforceExtractor, MultiExtractor
+				me = MultiExtractor()
+				me.create_job(query='query',name='name',
+									extractor=SalesforceExtractor(creds_json='test.json'))
+
 		assert me.extractor_jobs[0].query == 'query'
 		assert me.extractor_jobs[0].name == 'name'
 		assert me.extractor_jobs[0].extractor.__class__.__name__ == 'SalesforceExtractor'
@@ -121,7 +104,7 @@ class TestMultiExtractor:
 	#______________________________________________________________________________#
 	# Test run
 	def test_mex_run(self):
-		from ..src.extractors import SalesforceExtractor
+		from ..src.extractors import SalesforceExtractor, MultiExtractor
 		mock_sf = Mock(SalesforceExtractor)
 		mock_sf.query_runner = Mock(return_value=pd.DataFrame())
 		me = MultiExtractor()

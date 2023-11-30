@@ -3,6 +3,7 @@
 import sys
 import json
 from dataclasses import dataclass
+from . import logging
 
 
 
@@ -63,15 +64,42 @@ def get_bq_creds(jsonfile: str = 'credentials.json') -> GoogleCreds:
 #================================================================================#
 
 
-#================================================================================#
-def get_salesforce_creds(jsonfile: str = 'credentials.json') -> SalesforceCreds:
-	"""Get Salesforce client"""
-	creds_json = read_json(jsonfile)
-	if 'salesforce_creds' not in creds_json:
-		sys.exit(f"Credentials file {jsonfile} does not contain salesforce_creds.")
 
-	username = creds_json['salesforce_creds']['username']
-	password = creds_json['salesforce_creds']['password']
-	security_token = creds_json['salesforce_creds']['security_token']
+#================================================================================#
+def report_usage_sf() -> None:
+	"""Report usage for Salesforce"""
+	logging.error("json file should contain the following:")
+	logging.error("{")
+	logging.error("    \"username\": \"[username]\",")
+	logging.error("    \"password\": \"[password]\",")
+	logging.error("    \"security_token\": \"[security_token]\"")
+	logging.error("}")
+
+#______________________________________________________________________________#
+def get_salesforce_creds(jsonfile: str = '') -> SalesforceCreds:
+	"""Get Salesforce client"""
+	if jsonfile == '':
+		logging.error("get_salesforce_creds: No credentials JSON file provided.")
+		logging.error("set `salesforce_creds_json = `[path to JSON file]")
+		report_usage_sf()
+		raise ValueError("No credentials JSON file provided.")
+
+	# Read the credentials file
+	creds = read_json(jsonfile)
+
+	# Validate the credentials
+	required_keys = ['username', 'password', 'security_token']
+	test_pass = True
+	for key in required_keys:
+		test_pass = test_pass and (key in creds)
+	if not test_pass:
+		logging.error("get_salesforce_creds: Credentials JSON file does not contain all required keys.")
+		report_usage_sf()
+		raise ValueError("Credentials JSON file does not contain all required keys.")
+
+	# Create the creds object
+	username = creds['username']
+	password = creds['password']
+	security_token = creds['security_token']
 	return SalesforceCreds(username, password, security_token)
 #================================================================================#

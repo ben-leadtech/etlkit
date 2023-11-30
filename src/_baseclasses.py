@@ -37,9 +37,14 @@ class BaseExtract(ABC):
 	"""
 
 	query: str = ''
-	query_runner: Callable[[str], DataFrame | Exception]
+	query_runner: Callable[[str], DataFrame]
 
-	def __call__(self) -> DataFrame | Exception:
+	@abstractmethod
+	def __init__(self, creds_json: str, *args, **kwargs):
+		pass
+
+	# Concrete method
+	def __call__(self) -> DataFrame:
 		"""
 		Extract the data.
 		"""
