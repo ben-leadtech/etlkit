@@ -1,7 +1,6 @@
 import pytest
 from unittest.mock import Mock, patch
 import pandas as pd
-#from ..src.extractors import SalesforceExtractor, BigQueryExtractor
 from ..src.containers import Data
 
 
