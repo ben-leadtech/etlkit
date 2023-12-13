@@ -14,3 +14,8 @@ typecheck:
 
 test:
 	$(TESTER) $(TESTER_ARGS) tests
+
+validate:
+	make lint
+	make typecheck
+	make test
