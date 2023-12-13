@@ -7,7 +7,7 @@ LINTER_ARGS = --verbose
 
 
 lint:
-	$(LINTER) $(LINTER_ARGS) src tests
+	$(LINTER) $(LINTER_ARGS) etlkit tests
 
 typecheck:
 	mypy src tests
