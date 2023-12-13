@@ -10,7 +10,7 @@ lint:
 	$(LINTER) $(LINTER_ARGS) etlkit tests
 
 typecheck:
-	mypy src tests
+	mypy etlkit tests
 
 test:
 	$(TESTER) $(TESTER_ARGS) tests
