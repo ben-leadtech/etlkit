@@ -3,8 +3,8 @@ import os
 import pandas as pd
 import inspect
 from typing import Callable
-from ..src._baseclasses import Config, Data
-from ..src._baseclasses import BaseExtract, BaseLoad
+from ..etlkit._baseclasses import Config, Data
+from ..etlkit._baseclasses import BaseExtract, BaseLoad
 
 dotenv.load_dotenv()
 #================================================================================#
@@ -53,6 +53,8 @@ def test_Data():
 # Define dummy classes for testing
 class DummyExtractor(BaseExtract):
 	query = 'SELECT * FROM table'
+	def __init__(self, query: str = query):
+		self.query = query
 	def query_runner(self, query: str = query) -> pd.DataFrame:
 		return pd.DataFrame()
 
@@ -92,7 +94,7 @@ class TestBaseClasses:
 class TestExtractors:
 	def test_generic_extractor(self):
 		# Get list of classes in Extractors
-		from ..src import extractors
+		from ..etlkit import extractors
 		extractor_classes = [extractors.SalesforceExtractor, extractors.BigQueryExtractor]
 
 		# Loop through the classes

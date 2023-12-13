@@ -5,7 +5,7 @@ We need to test access to:
 - Google BigQuery
 - Salesforce
 """
-from ..src.extractors import SalesforceExtractor, BigQueryExtractor
+from ..etlkit.extractors import SalesforceExtractor, BigQueryExtractor
 import dotenv
 import os
 

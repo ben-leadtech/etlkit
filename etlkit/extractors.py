@@ -54,6 +54,12 @@ class SalesforceExtractor(BaseExtract):
 		from .credentials import get_salesforce_creds
 
 		# Get the credentials
+		if creds_json == '':
+			logging.error("SalesforceExtractor: No Salesforce credentials JSON file provided.")
+			logging.error("SalesforceExtractor: set `salesforce_creds_json = `[path to JSON file]")
+			self.query_runner = self._simple_query
+			return None
+			#raise ValueError("No Salesforce credentials JSON file provided.")
 		creds = get_salesforce_creds(creds_json)
 
 		# Create the client
@@ -145,7 +151,9 @@ class BigQueryExtractor(BaseExtract):
 		if creds_json == '':
 			logging.error("BigQueryExtractor: No Google credentials JSON file provided.")
 			logging.error("BigQueryExtractor: set `google_creds_json = `[path to JSON file]")
-			raise ValueError("No Google credentials JSON file provided.")
+			self.query_runner = self._query
+			return None
+			#raise ValueError("No Google credentials JSON file provided.")
 
 		creds = Credentials.from_service_account_file(creds_json)
 		self.client = self.BigQueryClient(credentials=creds)

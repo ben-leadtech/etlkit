@@ -4,12 +4,12 @@ Road-test the ETL framework
 import os
 import pandas as pd
 
-from src.etlkit import logging
-from src.etlkit.loaders import BigQueryLoader
-from src.etlkit.extractors import SalesforceExtractor, MultiExtractor
-from src.etlkit.templates import TemplatePipeline, ExtractTemplate, \
+from etlkit.etlkit import logging
+#from etlkit.loaders import BigQueryLoader
+from etlkit.etlkit.extractors import SalesforceExtractor, MultiExtractor
+from etlkit.etlkit.templates import TemplatePipeline, ExtractTemplate, \
 	TransformTemplate, LoadTemplate
-from src.etlkit.containers import Data, Config
+from etlkit.etlkit.containers import Data, Config
 
 import dotenv
 dotenv.load_dotenv()
@@ -178,12 +178,12 @@ class PPDTransformer(TransformTemplate):
 
 
 #================================================================================#
-class PPDLoader(LoadTemplate):
-	def load(self, df: pd.DataFrame, config: Config) -> None:
-		_ = BigQueryLoader()(df, config)
+# class PPDLoader(LoadTemplate):
+# 	def load(self, df: pd.DataFrame, config: Config) -> None:
+# 		_ = BigQueryLoader()(df, config)
 
-	def run(self, df: pd.DataFrame, config: Config) -> None:
-		self.load(df, config)
+# 	def run(self, df: pd.DataFrame, config: Config) -> None:
+# 		self.load(df, config)
 #================================================================================#
 
 
@@ -198,7 +198,7 @@ def main_v2():
 	pipeline = TemplatePipeline(
 							extractor=PPDExtractor,
 							transformer=PPDTransformer,
-							loader=PPDLoader,
+							#loader=PPDLoader,
 							config=config)
 
 	pipeline()
