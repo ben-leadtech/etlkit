@@ -1,7 +1,16 @@
 import pytest
+from typing import List
 from unittest.mock import Mock, patch
 import pandas as pd
 from ..etlkit.containers import Data
+
+
+def clear_cache(search_strings: List[str]):
+	import sys
+	for search_string in search_strings:
+		for key in list(sys.modules.keys()):
+			if search_string in key:
+				del sys.modules[key]
 
 
 #================================================================================#
@@ -23,6 +32,15 @@ class MockObjects:
 	mock_google_creds = Mock(GoogleCreds)
 	mock_google_creds.from_service_account_info = Mock(return_value=None)
 	mock_google_creds.from_service_account_file = Mock(return_value=None)
+
+	mock_service_account = Mock()
+	mock_service_account.Credentials = Mock(GoogleCreds)
+	mock_service_account.Credentials.from_service_account_info = Mock(return_value=None)
+	mock_service_account.Credentials.from_service_account_file = Mock(return_value=None)
+
+	#_ = clear_cache(['oogle','alesforce'])
+	#del SalesforceBulk, Salesforce, BQClient, GoogleCreds
+#================================================================================#
 
 #______________________________________________________________________________#
 def mock_get_salesforce_creds(*args, **kwargs):
@@ -52,18 +70,21 @@ def test_salesforce_extractors():
 
 #================================================================================#
 def test_BigQueryExtractor():
-	with patch('google.cloud.bigquery.Client', new=MockObjects.mock_bq_client):
-		with patch('google.oauth2.service_account.Credentials',
-											new=MockObjects.mock_google_creds):
-			from ..etlkit.extractors import BigQueryExtractor
-			bq = BigQueryExtractor(creds_json='test.json')
-			assert hasattr(bq,'client')
-			assert hasattr(bq,'query_runner')
-			#assert bq.client.__class__.__name__ == 'Client'
-			assert bq.query_runner.__name__ == '_query'
+	#_ = clear_cache(['oogle','Credentials'])
+	with patch('google.oauth2.service_account.Credentials', new=MockObjects.mock_google_creds):
+		with patch('google.cloud.bigquery.Client', new=MockObjects.mock_bq_client):
+			with patch('etlkit.etlkit.credentials.get_bq_creds',
+							new=MockObjects.mock_service_account):
+				from ..etlkit.extractors import BigQueryExtractor
+				bq = BigQueryExtractor(creds_json='test.json')
+				assert hasattr(bq,'client')
+				assert hasattr(bq,'query_runner')
+				assert bq.client.__class__.__name__ == 'Client'
+				assert bq.query_runner.__name__ == '_query'
 
-			with pytest.raises(Exception):
-				bq.query_runner('bad query')
+
+	with pytest.raises(Exception):
+		bq.query_runner('bad query')
 
 	#with pytest.raises(ValueError):
 	#	bq = BigQueryExtractor(creds_json='')

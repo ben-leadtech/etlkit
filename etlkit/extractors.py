@@ -154,7 +154,6 @@ class BigQueryExtractor(BaseExtract):
 			self.query_runner = self._query
 			return None
 			#raise ValueError("No Google credentials JSON file provided.")
-
 		creds = Credentials.from_service_account_file(creds_json)
 		self.client = self.BigQueryClient(credentials=creds)
 		self.query_runner = self._query
